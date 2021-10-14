@@ -21,7 +21,6 @@ df.rename(columns={
     df.columns[2]: "電話番号",
     df.columns[3]: "料金（円, 税込）", }, inplace=True)
 df["医療機関通信欄"].fillna(value="", inplace=True)
-#pd.options.display.float_format = '{:,.2f}'.format
 df["料金（円, 税込）"] = df["料金（円, 税込）"].fillna(value=0).astype('int').astype('str').replace("0", "<N/A>")
 
 st.title(f"関東ITソフトウェア健康保険組合(ITS)健保 インフルエンザ予防接種 会場リスト")
