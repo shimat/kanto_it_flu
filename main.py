@@ -25,11 +25,14 @@ df["料金（円, 税込）"] = df["料金（円, 税込）"].fillna(value=0).as
 
 st.title(f"関東ITソフトウェア健康保険組合(ITS)健保 インフルエンザ予防接種 会場リスト")
 query = st.sidebar.text_input(label="住所検索", help="入力した文字列と一致するする住所でリストアップします")
-search_option = st.sidebar.selectbox("検索方法", ("部分一致", "正規表現"))
+search_option = st.sidebar.selectbox("検索方法", ("部分一致", "先頭一致", "正規表現"))
 
 if query:
-    is_regex = (search_option == "正規表現")
-    df = df[df["住所"].str.contains(query, regex=is_regex)]
+    if search_option == "先頭一致":
+        df = df[df["住所"].str.startswith(query)]
+    else:
+        is_regex = (search_option == "正規表現")
+        df = df[df["住所"].str.contains(query, regex=is_regex)]
 st.dataframe(df)
 
 st.markdown("""
