@@ -38,4 +38,6 @@ st.dataframe(df)
 st.markdown("""
 ---
 公式案内: https://www.its-kenpo.or.jp/kanri/influenza.html
+
+実装: https://github.com/shimat/kanto_it_flu
 """)
