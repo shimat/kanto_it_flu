@@ -23,7 +23,7 @@ df.rename(columns={
 df["医療機関通信欄"].fillna(value="", inplace=True)
 df["料金（円, 税込）"] = df["料金（円, 税込）"].fillna(value=0).astype('int').astype('str').replace("0", "<N/A>")
 
-st.title(f"関東ITソフトウェア健康保険組合(ITS) インフルエンザ予防接種 会場リスト")
+st.title(f"東京都総合組合保健施設振興協会(東振協) インフルエンザ予防接種 会場リスト")
 
 col1, col2 = st.columns([3,2])
 with col1:
@@ -41,7 +41,9 @@ st.dataframe(df, height=600)
 
 st.markdown("""
 ---
-公式案内: https://www.its-kenpo.or.jp/kanri/influenza.html
+
++ 東振協 公式案内: https://www.toshinkyo.or.jp/influenza.html
++ 関東ITソフトウェア健康保険組合(ITS) の案内: https://www.its-kenpo.or.jp/kanri/influenza.html
 
 実装: https://github.com/shimat/kanto_it_flu
 """)
