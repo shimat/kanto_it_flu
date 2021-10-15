@@ -23,7 +23,7 @@ df.rename(columns={
 df["医療機関通信欄"].fillna(value="", inplace=True)
 df["料金（円, 税込）"] = df["料金（円, 税込）"].fillna(value=0).astype('int').astype('str').replace("0", "<N/A>")
 
-st.title(f"関東ITソフトウェア健康保険組合(ITS)健保 インフルエンザ予防接種 会場リスト")
+st.title(f"関東ITソフトウェア健康保険組合(ITS) インフルエンザ予防接種 会場リスト")
 
 col1, col2 = st.columns([3,2])
 with col1:
