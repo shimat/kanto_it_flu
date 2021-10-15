@@ -25,7 +25,7 @@ df["料金（円, 税込）"] = df["料金（円, 税込）"].fillna(value=0).as
 
 st.title(f"関東ITソフトウェア健康保険組合(ITS)健保 インフルエンザ予防接種 会場リスト")
 
-col1, col2 = st.columns(2)
+col1, col2 = st.columns([3,2])
 with col1:
     query = st.text_input(label="住所検索", help="入力した文字列と一致、または正規表現にマッチする住所でリストアップします")
 with col2:
