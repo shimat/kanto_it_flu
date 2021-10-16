@@ -46,13 +46,17 @@ if query:
 html = df.to_html(escape=False)
 st.write("""
 <style type="text/css">
-table{
+table td:nth-child(1) {
+    display: none
+}
+table th:nth-child(1) {
+    display: none
 }
 table.dataframe {
   display: block;
   overflow-x: scroll;
   overflow-y: scroll;
-  height: 700px;
+  height: 600px;
 }
 </style>
 """, unsafe_allow_html=True)
