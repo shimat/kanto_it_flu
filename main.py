@@ -9,6 +9,9 @@ def load_data():
     return response.content
 
 
+st.set_page_config(layout = 'wide')
+st.title(f"東京都総合組合保健施設振興協会(東振協) インフルエンザ予防接種 会場リスト")
+
 xls_data = load_data()
 df = pd.read_excel(
     xls_data,
@@ -19,11 +22,13 @@ df.rename(columns={
     df.columns[0]: "医療機関名称",
     df.columns[1]: "住所",
     df.columns[2]: "電話番号",
-    df.columns[3]: "料金（円, 税込）", }, inplace=True)
+    df.columns[3]: "料金(税込)", }, inplace=True)
 df["医療機関通信欄"].fillna(value="", inplace=True)
-df["料金（円, 税込）"] = df["料金（円, 税込）"].fillna(value=0).astype('int').astype('str').replace("0", "<N/A>")
-
-st.title(f"東京都総合組合保健施設振興協会(東振協) インフルエンザ予防接種 会場リスト")
+df["料金(税込)"] = df["料金(税込)"].fillna(value=0).astype('int').astype('str')\
+    .apply(lambda s: f"¥{s}").replace("¥0", "<N/A>")
+df["医療機関名称"] = df["医療機関名称"].apply(
+    lambda s: f"<a target='_blank' href='https://www.google.com/search?q={s}'>{s}</a>")
+df["住所"] = df["住所"].apply(lambda s: f"<a target='_blank' href='https://www.google.com/maps/search/?api=1&query={s}'>{s}</a>")
 
 col1, col2 = st.columns([3,2])
 with col1:
@@ -37,7 +42,21 @@ if query:
     else:
         is_regex = (search_option == "正規表現")
         df = df[df["住所"].str.contains(query, regex=is_regex)]
-st.dataframe(df, height=600)
+#st.dataframe(df, height=600)
+html = df.to_html(escape=False)
+st.write("""
+<style type="text/css">
+table{
+}
+table.dataframe {
+  display: block;
+  overflow-x: scroll;
+  overflow-y: scroll;
+  height: 700px;
+}
+</style>
+""", unsafe_allow_html=True)
+st.write(html, unsafe_allow_html=True)
 
 st.markdown("""
 ---
