@@ -8,7 +8,7 @@ from pyproj import Geod
 
 TOSHINKYO_SHEET_URL = "https://influenza.toshinkyo.or.jp/influ-data/influ-list.xls"
 YAHOO_API_URL = "https://map.yahooapis.jp/geocode/V1/geoCoder"
-YAHOO_API_KEY = os.getenv("YAHOO_API_KEY")
+YAHOO_API_KEY = st.secrets["YAHOO_API_KEY"]
 
 GEOD = Geod(ellps='WGS84')
 
