@@ -59,7 +59,7 @@ tabs = st.tabs(("近い医療機関検索", "住所検索"))
 
 def tab1(tab, df) -> None:
     with tab:
-        if not (address := st.text_input(label="入力した住所から近い医療機関を検索", help="入力した住所の緯度経度から、近い医療機関をリストアップします。")):
+        if not (address := st.text_input(value="東京都千代田区永田町１丁目", label="入力した住所から近い医療機関を検索", help="入力した住所の緯度経度から、近い医療機関をリストアップします。")):
             return
         if not (origin_lonlat := get_coordinates_via_yahoo_api(address)):
             return
