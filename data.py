@@ -24,7 +24,7 @@ def load_xls_data() -> bytes:
     return response.content
 
 
-#@st.experimental_memo
+@st.experimental_memo
 def load_address_coordinates_data() -> dict[str, Coordinates]:
     with open("address_coordinates.csv", "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -37,7 +37,7 @@ def load_address_coordinates_data() -> dict[str, Coordinates]:
 @st.cache
 def get_coordinates_via_yahoo_api(address: str) -> Optional[Coordinates]:
     response = requests.get(
-        YAHOO_API_URL, 
+        YAHOO_API_URL,
         params={
             "query": address,
             "appid": YAHOO_API_KEY,
@@ -50,7 +50,7 @@ def get_coordinates_via_yahoo_api(address: str) -> Optional[Coordinates]:
     if not coordinates:
         return None
     c = coordinates.split(",")
-    return Coordinates(float(c[0]), float(c[1]))        
+    return Coordinates(float(c[0]), float(c[1]))
 
 
 def calc_distance_meter(origin_lonlat: Coordinates, target_address: str, coordinates_map: dict[str, Coordinates]):

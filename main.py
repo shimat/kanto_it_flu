@@ -1,8 +1,8 @@
 import pandas as pd
 import streamlit as st
 from data import (
-    load_xls_data, 
-    get_coordinates_via_yahoo_api, 
+    load_xls_data,
+    get_coordinates_via_yahoo_api,
     load_address_coordinates_data,
     calc_distance_meter)
 
@@ -41,7 +41,7 @@ st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
 xls_data = load_xls_data()
 df = pd.read_excel(
     xls_data,
-    sheet_name=0, 
+    sheet_name=0,
     skiprows=2,
     usecols=[1,3,4,5,6]) # drop 医療機関コード, 郵便番号
 
@@ -75,10 +75,10 @@ def tab1(tab, df) -> None:
             lambda s: f"<a target='_blank' href='https://www.google.com/search?q={s}'>{s}</a>")
         df1["住所"] = df1["住所"].apply(lambda s: f"<a target='_blank' href='https://www.google.com/maps/search/?api=1&query={s}'>{s}</a>")
         df1 = df1.sort_values(by='距離(m)', ascending=True).head(10)
-        df1["距離(m)"] = df1["距離(m)"].map(lambda d: "{:,}".format(d))        
+        df1["距離(m)"] = df1["距離(m)"].map(lambda d: "{:,}".format(d))
         html = df1.to_html(escape=False)
         st.write(html, unsafe_allow_html=True)
-        
+
         st.header("全件表示")
         df2 = df_.drop(columns=["医療機関通信欄"])
         st.dataframe(df2, height=600, use_container_width=True)
