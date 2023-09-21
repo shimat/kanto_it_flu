@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from io import BytesIO
 from data import (
     load_xls_data,
     get_coordinates_via_yahoo_api,
@@ -39,11 +40,18 @@ st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
 
 
 xls_data = load_xls_data()
+df_head = pd.read_excel(
+    BytesIO(xls_data),
+    header=None,
+    nrows=1)
 df = pd.read_excel(
-    xls_data,
+    BytesIO(xls_data),
     sheet_name=0,
     skiprows=2,
-    usecols=[1,3,4,5,6]) # drop 医療機関コード, 郵便番号
+    usecols=[1,3,4,5,7]) # drop 医療機関コード, 郵便番号, インボイス登録
+#st.dataframe(df_head)
+
+last_update = df_head.iloc[0, 7]
 
 df.rename(columns={
     df.columns[0]: "医療機関名称",
@@ -59,7 +67,7 @@ tabs = st.tabs(("近い医療機関検索", "住所検索"))
 
 def tab1(tab, df) -> None:
     with tab:
-        if not (address := st.text_input(value="東京都千代田区永田町１丁目", label="入力した住所から近い医療機関を検索", help="入力した住所の緯度経度から、近い医療機関をリストアップします。")):
+        if not (address := st.text_input(placeholder="東京都千代田区永田町１丁目", label="入力した住所から近い医療機関を検索", help="入力した住所の緯度経度から、近い医療機関をリストアップします。")):
             return
         if not (origin_lonlat := get_coordinates_via_yahoo_api(address)):
             return
@@ -113,7 +121,9 @@ tab2(tabs[1], df)
 
 st.markdown("""
 ---
-
+""")
+st.write(last_update)
+st.markdown("""
 + 東振協 公式案内: https://www.toshinkyo.or.jp/influenza.html
 + 関東ITソフトウェア健康保険組合(ITS) の案内: https://www.its-kenpo.or.jp/kanri/influenza.html
 + Yahoo!ジオコーダAPI: https://developer.yahoo.co.jp/webapi/map/openlocalplatform/v1/geocoder.html
