@@ -18,13 +18,13 @@ class Coordinates(NamedTuple):
     latidude: float
 
 
-@st.cache
+@st.cache_data
 def load_xls_data() -> bytes:
     response = requests.get(TOSHINKYO_SHEET_URL)
     return response.content
 
 
-@st.experimental_memo
+@st.cache_data
 def load_address_coordinates_data() -> dict[str, Coordinates]:
     with open("address_coordinates.csv", "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -34,7 +34,7 @@ def load_address_coordinates_data() -> dict[str, Coordinates]:
         return result
 
 
-@st.cache
+@st.cache_data
 def get_coordinates_via_yahoo_api(address: str) -> Optional[Coordinates]:
     response = requests.get(
         YAHOO_API_URL,
@@ -42,7 +42,6 @@ def get_coordinates_via_yahoo_api(address: str) -> Optional[Coordinates]:
             "query": address,
             "appid": YAHOO_API_KEY,
             "output": "json"})
-
     features: list[Any] = response.json().get("Feature", [])
     if not features:
         return None
