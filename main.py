@@ -59,7 +59,7 @@ df.rename(
     },
     inplace=True,
 )
-df["医療機関通信欄"].fillna(value="", inplace=True)
+df["医療機関通信欄"] = df["医療機関通信欄"].fillna(value="")
 df["料金(税込)"] = df["料金(税込)"].fillna(value=0).astype("int").astype("str").apply(lambda s: f"¥{s}").replace("¥0", "<N/A>")
 
 
