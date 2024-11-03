@@ -1,8 +1,9 @@
-import os
+import os  # noqa: INP001
 import time
-import requests
+from pathlib import Path
 from typing import Any
 
+import requests
 
 YAHOO_API_URL = "https://map.yahooapis.jp/geocode/V1/geoCoder"
 YAHOO_API_KEY = os.getenv("YAHOO_API_KEY")
@@ -29,11 +30,9 @@ YAHOO_API_KEY = os.getenv("YAHOO_API_KEY")
             "BoundingBox":"141.3026660,43.1105880 141.3076850,43.1145060"
          },
          "Category":[
-            
          ],
          "Description":"",
          "Style":[
-            
          ],
          "Property":{
             "Uid":"abb568c813c2364a2c4db8c505b3b50956123744",
@@ -54,22 +53,20 @@ YAHOO_API_KEY = os.getenv("YAHOO_API_KEY")
 """
 
 
-with open("address.txt", "r", encoding="UTF-8") as fr, \
-    open("address_out.jsonl", "w", encoding="UTF-8") as fw1, \
-    open("address_out.csv", "w", encoding="UTF-8") as fw2:
-
+# 東振協のCSVから住所のみを抜き出して address.txt とし、入力とする
+with (
+    Path("address.txt").open("r", encoding="UTF-8") as fr,
+    Path("address_out.jsonl").open("w", encoding="UTF-8") as fw1,
+    Path("address_out.csv").open("w", encoding="UTF-8") as fw2,
+):
     fw2.write("address,longitude,latitude\n")
 
     for line in fr:
         address = line.rstrip()
         print(address)
 
-        response = requests.get(
-            YAHOO_API_URL, 
-            params={
-                "query": address,
-                "appid": YAHOO_API_KEY,
-                "output": "json"})
+        response = requests.get(YAHOO_API_URL, timeout=10, params={"query": address, "appid": YAHOO_API_KEY, "output": "json"})
+        response.raise_for_status()
 
         fw1.write(response.text)
         fw1.write("\n")
@@ -77,7 +74,7 @@ with open("address.txt", "r", encoding="UTF-8") as fr, \
         features: list[Any] = response.json().get("Feature", [])
         if features:
             coordinates = features[0].get("Geometry", {}).get("Coordinates", ",")
-            fw2.write(f"\"{address}\",{coordinates}")
+            fw2.write(f'"{address}",{coordinates}')
             fw2.write("\n")
 
         fw1.flush()
