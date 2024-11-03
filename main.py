@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 import streamlit as st
 from io import BytesIO
@@ -7,6 +8,8 @@ from data import (
     load_address_coordinates_data,
     calc_distance_meter)
 
+
+print(sys.version)
 
 st.set_page_config(layout = 'wide')
 st.title(f"東京都総合組合保健施設振興協会(東振協) インフルエンザ予防接種 会場リスト")
