@@ -1,0 +1,67 @@
+[tool.poetry]
+name = "kanto-it-flu"
+version = "0.1.0"
+description = "Streamlitによる、東振協インフルエンザ予防接種 会場リスト"
+authors = ["shimat <schimatk@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.39.0"
+pyproj = "^3.7.0"
+xlrd = "^2.0.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.7.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+exclude = [
+    ".git",
+    ".github",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+]
+line-length = 160
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    # unused-noqa
+    "RUF100",
+    # missing-trailing-comma
+    "COM812",
+    # ambiguous-variable-name
+    "E741",
+    #  single-line-implicit-string-concatenation
+    "ISC001",
+    # assert
+    "S101",
+    # suspicious-non-cryptographic-random-usage
+    "S311",
+    # unnecessary-assign
+    "RET504",
+    # magic-value-comparison
+    "PLR2004",
+    # pydocstyle
+    "D",
+    # flake8-annotations
+    "ANN",
+    # The file is executable but no shebang is present
+    "EXE002",
+    # print
+    "T201",
+    # commented-out-code
+    "ERA001",
+    # pandas-use-of-inplace-argument
+    "PD002",
+    # pandas-df-variable-name
+    "PD901",
+]
