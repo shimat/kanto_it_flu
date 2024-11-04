@@ -9,7 +9,7 @@ if not YAHOO_API_KEY:
     print("Error: YAHOO_API_KEY not set")
     os.exit(1)
 
-address = "北海道札幌市白石区菊水１条３丁目２－１２"
+address = "大阪府大阪市住之江区南港北１－１７－１９－３０４"
 
 response = requests.get(
     YAHOO_API_URL,
