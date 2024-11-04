@@ -1,64 +1,38 @@
 import os
 import sys
-from io import BytesIO
 
 import pandas as pd
 import streamlit as st
+import folium
+from streamlit_folium import st_folium
 
-from data import calc_distance_meter, get_coordinates_via_yahoo_api, load_address_coordinates_data, load_xls_data
+from css import write_css
+from data import calc_distance_meter, get_coordinates_via_yahoo_api, load_address_coordinates_data, load_xls
 
 os.write(1, f"Python version: {sys.version}\n".encode())
 
 st.set_page_config(layout="wide")
 st.title("東振協 インフルエンザ予防接種 会場リスト")
+write_css()
 
-st.write(
-    """
-        <style type="text/css">
-        table td:nth-child(1) {
-            display: none
-        }
-        table th:nth-child(1) {
-            display: none
-        }
-        table.dataframe {
-            display: block;
-            overflow-x: scroll;
-            overflow-y: scroll;
-            height: 600px;
-        }
-        </style>
-        """,
-    unsafe_allow_html=True,
-)
-
-# CSS to inject contained in a string
-hide_dataframe_row_index = """
-        <style>
-        .row_heading.level0 {display:none}
-        .blank {display:none}
-        </style>
-        """
-# Inject CSS with Markdown
-st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
-
-
-xls_data = load_xls_data()
-df_head = pd.read_excel(BytesIO(xls_data), header=None, nrows=1)
-df = pd.read_excel(BytesIO(xls_data), sheet_name=0, skiprows=2, usecols=[1, 3, 4, 5, 7])  # drop 医療機関コード, 郵便番号, インボイス登録
-# st.dataframe(df_head)
-
-last_update = df_head.iloc[0, 7]
-
-df.rename(
+# Load xls and csv as pd.DataFrame
+df_head, df_main = load_xls()
+df_main.rename(
     columns={
-        df.columns[0]: "医療機関名称",
-        df.columns[1]: "住所",
-        df.columns[2]: "電話番号",
-        df.columns[3]: "料金(税込)",
+        df_main.columns[0]: "医療機関名称",
+        df_main.columns[1]: "住所",
+        df_main.columns[2]: "電話番号",
+        df_main.columns[3]: "料金(税込)",
     },
     inplace=True,
 )
+df_coords = pd.read_csv("address_coordinates.csv", header=0, usecols=("address", "longitude", "latitude"))
+
+df = df_main.merge(df_coords, left_on="住所", right_on="address", how="left")
+# st.write(df)
+last_update = df_head.iloc[0, 7]
+
+
 df["医療機関通信欄"] = df["医療機関通信欄"].fillna(value="")
 df["料金(税込)"] = df["料金(税込)"].fillna(value=0).astype("int").astype("str").apply(lambda s: f"¥{s}").replace("¥0", "<N/A>")
 
@@ -93,16 +67,18 @@ def tab1(tab, df) -> None:
         html = df1.to_html(escape=False)
         st.write(html, unsafe_allow_html=True)
 
-        st.header("全件表示")
-        df2 = df_.drop(columns=["医療機関通信欄"])
-        st.dataframe(df2, height=600, use_container_width=True)
+        with st.expander("全件表示", icon="🏥"):
+            df2 = df_.drop(columns=["医療機関通信欄"])
+            st.dataframe(df2, height=600, use_container_width=True)
 
 
 def tab2(tab, df) -> None:
     with tab:
         col1, col2 = st.columns([3, 2])
         with col1:
-            query = col1.text_input(label="住所検索", help="入力した文字列と一致、または正規表現にマッチする住所でリストアップします")
+            query = col1.text_input(
+                label="住所検索", value="千代田区", help="入力した文字列と一致、または正規表現にマッチする住所でリストアップします"
+            )
         with col2:
             search_option = col2.selectbox("検索方法", ("部分一致", "先頭一致", "正規表現"))
 
@@ -113,11 +89,29 @@ def tab2(tab, df) -> None:
                 is_regex = search_option == "正規表現"
                 df = df[df["住所"].str.contains(query, regex=is_regex)]
 
-        df["医療機関名称"] = df["医療機関名称"].apply(lambda s: f"<a target='_blank' href='https://www.google.com/search?q={s}'>{s}</a>")
+        df["医療機関名称"] = df["医療機関名称"].apply(lambda s: f"https://www.google.com/search?q={s}")
         df["住所"] = df["住所"].apply(lambda s: f"<a target='_blank' href='https://www.google.com/maps/search/?api=1&query={s}'>{s}</a>")
 
         html = df.to_html(escape=False)
         st.write(html, unsafe_allow_html=True)
+        st.dataframe(df, hide_index=True, column_config={"医療機関名称": st.column_config.LinkColumn(display_text="q=(.*?)")})
+
+        df_map = df.head(1000)
+        folium_map = folium.Map(
+            location=[df_map["latitude"].mean(), df_map["longitude"].mean()],
+            # tiles="https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png",
+            # attr='&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院</a>',
+            zoom_start=10,
+        )
+        for _, row in df_map.iterrows():
+            folium.Marker(
+                location=[row["latitude"], row["longitude"]],
+                popup=folium.Popup(f"<p>{111}</p>", max_width=300),
+                tooltip="AAA",
+                icon=folium.Icon(color="red", prefix="fa", icon="hospital-alt"),
+            ).add_to(folium_map)
+        st.header("地図表示 (最大1000件)")
+        st_folium(folium_map, use_container_width=True, height=600, returned_objects=[])
 
 
 tab1(tabs[0], df)
@@ -131,6 +125,7 @@ st.markdown("""
 + 東振協 公式案内: https://www.toshinkyo.or.jp/influenza.html
 + 関東ITソフトウェア健康保険組合(ITS) の案内: https://www.its-kenpo.or.jp/kanri/influenza.html
 + Yahoo!ジオコーダAPI: https://developer.yahoo.co.jp/webapi/map/openlocalplatform/v1/geocoder.html
++ <a href="https://www.flaticon.com/free-icons/hospital" title="hospital icons">Hospital icons created by Freepik - Flaticon</a>
 
 実装: https://github.com/shimat/kanto_it_flu
 """)

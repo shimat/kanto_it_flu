@@ -48,10 +48,17 @@ def get_coordinates_by_zipcode(zip_code: str) -> str | None:
     return features[0].get("Geometry", {}).get("Coordinates", None) if features else None
 
 
-# 東振協のCSVから名称,郵便番号,住所のみを抜き出して address.csv とし、入力とする
+"""
+東振協のCSVから名称,郵便番号,住所のみを抜き出して address.csv とし、入力とする。1行目はヘッダとして読み飛ばす。
+
+name,zip,address
+XXX内科,001-0901,北海道札幌市北区新琴似一条１３－１－７
+YYY駅前医院,002-8024,北海道札幌市北区篠路四条６－１１－１７
+...
+"""
 with (
     Path("address.csv").open("r", encoding="utf-8-sig") as fr,
-    Path("address_out.csv").open("w", encoding="utf-8-sig") as fw,
+    Path("address_coordinates_out.csv").open("w", encoding="utf-8-sig") as fw,
 ):
     fw.write("name,zip,address,longitude,latitude,method\n")
 
