@@ -28,7 +28,7 @@ exclude = [
     ".venv",
     "__pycache__",
 ]
-line-length = 160
+line-length = 140
 target-version = "py311"
 
 [tool.ruff.lint]
@@ -36,6 +36,8 @@ select = ["ALL"]
 ignore = [
     # unused-noqa
     "RUF100",
+    # ambiguous-unicode-character-string
+    "RUF001",
     # missing-trailing-comma
     "COM812",
     # ambiguous-variable-name
