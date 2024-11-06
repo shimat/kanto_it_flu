@@ -84,6 +84,10 @@ def tab1(tab, df) -> None:
 
 
 def tab2(tab, df) -> None:
+    # 条件分岐によらない場所でGPS取得するようにする
+    geo_location = streamlit_geolocation()
+    print(f"{geo_location=}")
+
     with tab:
         origin_lonlat: Coordinates | None = None
 
@@ -96,10 +100,8 @@ def tab2(tab, df) -> None:
         ):
             origin_lonlat = get_coordinates_via_yahoo_api(address)
         if right.button("GPS", use_container_width=True):
-            location = streamlit_geolocation()
-            print(f"{location=}")
-            if location["longitude"] is not None and location["latitude"] is not None:
-                origin_lonlat = Coordinates(location["longitude"], location["latitude"])
+            if geo_location["longitude"] is not None and geo_location["latitude"] is not None:
+                origin_lonlat = Coordinates(geo_location["longitude"], geo_location["latitude"])
             else:
                 st.error("GPS情報の取得に失敗しました")
                 origin_lonlat = None
