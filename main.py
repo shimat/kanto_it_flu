@@ -141,7 +141,7 @@ def make_map(df_map: pd.DataFrame, *, zoom_start: int) -> folium.Map:
                 """),
                 max_width=300,
             ),
-            tooltip=f"{row["医療機関名称Raw"]}",
+            tooltip=f"{row['医療機関名称Raw']}",
             icon=folium.Icon(color="red", prefix="fa", icon="hospital-alt"),
         ).add_to(folium_map)
     return folium_map
