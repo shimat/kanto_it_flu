@@ -12,8 +12,9 @@ from data import calc_distance_meter, get_coordinates_via_yahoo_api, load_addres
 
 os.write(1, f"Python version: {sys.version}\n".encode())
 
-st.set_page_config(layout="wide")
-st.title("東振協 インフルエンザ予防接種 会場リスト")
+TITLE = "東振協 インフルエンザ予防接種 会場リスト"
+st.set_page_config(layout="wide", page_title=TITLE)
+st.title(TITLE)
 write_css()
 
 # Load xls and csv as pd.DataFrame
