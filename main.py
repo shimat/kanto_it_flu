@@ -74,7 +74,8 @@ def tab1(tab, df) -> None:
         html = df.to_html(escape=False, columns=("医療機関名称", "住所", "電話番号", "料金(税込)", "医療機関通信欄"))
         st.write(html, unsafe_allow_html=True)
 
-        df_map = df.head(1000)
+        df_map = df.head(1000).dropna()
+        # st.write(df_map)
         folium_map = make_map(df_map, zoom_start=10)
         st.header("地図表示 (最大1000件)")
         st_folium(folium_map, use_container_width=True, height=600, returned_objects=[])
