@@ -6,9 +6,10 @@ import folium
 import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
+from streamlit_geolocation import streamlit_geolocation
 
 from css import write_css
-from data import calc_distance_meter, get_coordinates_via_yahoo_api, load_address_coordinates_data, load_xls
+from data import Coordinates, calc_distance_meter, get_coordinates_via_yahoo_api, load_address_coordinates_data, load_xls
 
 os.write(1, f"Python version: {sys.version}\n".encode())
 
@@ -84,15 +85,26 @@ def tab1(tab, df) -> None:
 
 def tab2(tab, df) -> None:
     with tab:
-        if not (
-            address := st.text_input(
-                placeholder="東京都千代田区永田町１丁目",
-                label="入力した住所から近い医療機関を検索",
-                help="入力した住所の緯度経度から、近い医療機関をリストアップします。",
-            )
+        origin_lonlat: Coordinates | None = None
+
+        left, right = st.columns([9, 1])
+        if address := left.text_input(
+            label="入力した住所から近い医療機関を検索",
+            help="入力した住所の緯度経度から、近い医療機関をリストアップします。",
+            placeholder="入力した住所の緯度経度から、近い医療機関をリストアップします",
+            label_visibility="collapsed",
         ):
-            return
-        if not (origin_lonlat := get_coordinates_via_yahoo_api(address)):
+            origin_lonlat = get_coordinates_via_yahoo_api(address)
+        if right.button("GPS", use_container_width=True):
+            location = streamlit_geolocation()
+            print(f"{location=}")
+            if location["longitude"] is not None and location["latitude"] is not None:
+                origin_lonlat = Coordinates(location["longitude"], location["latitude"])
+            else:
+                st.error("GPS情報の取得に失敗しました")
+                origin_lonlat = None
+
+        if not origin_lonlat:
             return
         st.write(f"(lon={origin_lonlat[0]}, lat={origin_lonlat[1]})")
         coordinates_map = load_address_coordinates_data()
