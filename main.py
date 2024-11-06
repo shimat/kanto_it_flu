@@ -38,7 +38,7 @@ df["医療機関通信欄"] = df["医療機関通信欄"].fillna(value="")
 df["料金(税込)"] = df["料金(税込)"].fillna(value=0).astype("int").astype("str").apply(lambda s: f"¥{s}").replace("¥0", "<N/A>")
 
 
-tabs = st.tabs(("近い医療機関検索", "住所検索"))
+tabs = st.tabs(("住所検索", "近い医療機関検索"))
 
 
 def tab1(tab, df) -> None:
@@ -56,13 +56,13 @@ def tab1(tab, df) -> None:
 
         if query:
             if search_option == "先頭一致":
-                df = df[df["住所"].str.startswith(query)]
+                df = df[df["住所"].str.startswith(query)].copy()
             else:
                 is_regex = search_option == "正規表現"
-                df = df[df["住所"].str.contains(query, regex=is_regex)]
+                df = df[df["住所"].str.contains(query, regex=is_regex)].copy()
 
         # TODO: See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-        df.loc[:, "医療機関名称Raw"] = df["医療機関名称"].apply(lambda s: s)
+        df.loc[:, "医療機関名称Raw"] = df["医療機関名称"]
         df.loc[:, "医療機関名称"] = df["医療機関名称Raw"].apply(
             lambda s: f"<a target='_blank' href='https://www.google.com/search?q={s}'>{s}</a>"
         )
