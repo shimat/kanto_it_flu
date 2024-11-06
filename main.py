@@ -1,3 +1,4 @@
+import inspect
 import os
 import sys
 
@@ -61,13 +62,14 @@ def tab1(tab, df) -> None:
                 df = df[df["住所"].str.contains(query, regex=is_regex)]
 
         # TODO: See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-        df.loc[:, "医療機関名称Raw"] = df.loc[:, "医療機関名称"]
+        df.loc[:, "医療機関名称Raw"] = df["医療機関名称"].apply(lambda s: s)
         df.loc[:, "医療機関名称"] = df["医療機関名称Raw"].apply(
             lambda s: f"<a target='_blank' href='https://www.google.com/search?q={s}'>{s}</a>"
         )
         df.loc[:, "住所"] = df["住所"].apply(
             lambda s: f"<a target='_blank' href='https://www.google.com/maps/search/?api=1&query={s}'>{s}</a>"
         )
+        df.loc[:, "医療機関通信欄"] = df.loc[:, "医療機関通信欄"].apply(lambda s: s.replace("\\", "￥"))
 
         html = df.to_html(escape=False, columns=("医療機関名称", "住所", "電話番号", "料金(税込)", "医療機関通信欄"))
         st.write(html, unsafe_allow_html=True)
@@ -124,7 +126,7 @@ def make_map(df_map: pd.DataFrame, *, zoom_start: int) -> folium.Map:
         folium.Marker(
             location=[row["latitude"], row["longitude"]],
             popup=folium.Popup(
-                f"""
+                inspect.cleandoc(f"""
                 <p>
                     <b>{row["医療機関名称"]}</b>
                 </p>
@@ -136,7 +138,7 @@ def make_map(df_map: pd.DataFrame, *, zoom_start: int) -> folium.Map:
                 <p>
                     {row["医療機関通信欄"]}
                 </p>
-                """,
+                """),
                 max_width=300,
             ),
             tooltip=f"{row["医療機関名称Raw"]}",
