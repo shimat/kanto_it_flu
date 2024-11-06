@@ -121,7 +121,7 @@ def tab2(tab, df) -> None:
         df1["住所"] = df1["住所"].apply(lambda s: f"<a target='_blank' href='https://www.google.com/maps/search/?api=1&query={s}'>{s}</a>")
         df1 = df1.sort_values(by="距離(m)", ascending=True).head(50)
         df1["距離(m)"] = df1["距離(m)"].map(lambda d: f"{d:,}")
-        html = df1.to_html(escape=False)
+        html = df1.to_html(escape=False, columns=("医療機関名称", "住所", "電話番号", "料金(税込)", "医療機関通信欄"))
         st.write(html, unsafe_allow_html=True)
 
         folium_map = make_map(df1, zoom_start=12)
