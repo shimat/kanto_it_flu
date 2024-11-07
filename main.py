@@ -103,7 +103,9 @@ def tab2(tab, df) -> None:
             if geo_location["longitude"] is not None and geo_location["latitude"] is not None:
                 origin_lonlat = Coordinates(geo_location["longitude"], geo_location["latitude"])
             else:
-                st.error("GPS情報の取得に失敗しました")
+                st.error(
+                    "GPS情報の取得に失敗しました\n位置情報の取得を有効にしたり、下にある位置情報アイコンを押してから再度お試しください"
+                )
                 origin_lonlat = None
 
         if not origin_lonlat:
@@ -121,7 +123,7 @@ def tab2(tab, df) -> None:
         df1["住所"] = df1["住所"].apply(lambda s: f"<a target='_blank' href='https://www.google.com/maps/search/?api=1&query={s}'>{s}</a>")
         df1 = df1.sort_values(by="距離(m)", ascending=True).head(50)
         df1["距離(m)"] = df1["距離(m)"].map(lambda d: f"{d:,}")
-        html = df1.to_html(escape=False, columns=("医療機関名称", "住所", "電話番号", "料金(税込)", "医療機関通信欄"))
+        html = df1.to_html(escape=False, columns=("医療機関名称", "住所", "電話番号", "料金(税込)", "医療機関通信欄", "距離(m)"))
         st.write(html, unsafe_allow_html=True)
 
         folium_map = make_map(df1, zoom_start=12)
