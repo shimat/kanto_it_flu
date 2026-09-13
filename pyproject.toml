@@ -1,24 +1,28 @@
-[tool.poetry]
+[project]
 name = "kanto-it-flu"
-version = "0.1.0"
+version = "0.2.0"
 description = "Streamlitによる、東振協インフルエンザ予防接種 会場リスト"
-authors = ["shimat <schimatk@gmail.com>"]
 readme = "README.md"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "folium>=0.20,<1",
+    "pandas>=3.0,<4",
+    "pyproj>=3.8,<4",
+    "requests>=2.32,<3",
+    "streamlit>=1.63,<2",
+    "streamlit-folium>=0.27,<1",
+    "streamlit-geolocation>=0.0.10,<1",
+    "xlrd>=2.0.2,<3",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-streamlit = "^1.39.0"
-pyproj = "^3.7.0"
-xlrd = "^2.0.1"
-streamlit-folium = "^0.23.1"
-streamlit-geolocation = "^0.0.10"
+[dependency-groups]
+dev = [
+    "pytest>=9,<10",
+    "ruff>=0.14,<1",
+]
 
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.7.2"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv]
+package = false
 
 [tool.ruff]
 exclude = [
@@ -29,43 +33,30 @@ exclude = [
     ".ruff_cache",
     ".venv",
     "__pycache__",
+    "css.py",
+    "tools/address_to_latlon.py",
+    "tools/*_sample.py",
 ]
-line-length = 140
-target-version = "py311"
+line-length = 120
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    # unused-noqa
-    "RUF100",
-    # ambiguous-unicode-character-string
-    "RUF001",
-    # missing-trailing-comma
-    "COM812",
-    # ambiguous-variable-name
-    "E741",
-    #  single-line-implicit-string-concatenation
-    "ISC001",
-    # assert
-    "S101",
-    # suspicious-non-cryptographic-random-usage
-    "S311",
-    # unnecessary-assign
-    "RET504",
-    # magic-value-comparison
-    "PLR2004",
-    # pydocstyle
-    "D",
-    # flake8-annotations
     "ANN",
-    # The file is executable but no shebang is present
-    "EXE002",
-    # print
-    "T201",
-    # commented-out-code
+    "COM812",
+    "CPY001",
+    "D",
     "ERA001",
-    # pandas-use-of-inplace-argument
+    "INP001",
+    "ISC001",
     "PD002",
-    # pandas-df-variable-name
-    "PD901",
+    "PLR2004",
+    "RUF001",
+    "S101",
+    "T201",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
