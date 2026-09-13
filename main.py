@@ -6,7 +6,7 @@ import folium
 import pandas as pd
 import streamlit as st
 from branca.element import MacroElement, Template
-from folium.plugins import FastMarkerCluster
+from folium.plugins import FastMarkerCluster, Fullscreen
 from streamlit_folium import st_folium
 from streamlit_geolocation import streamlit_geolocation
 
@@ -26,6 +26,7 @@ TITLE = "東振協 インフルエンザ予防接種 会場リスト"
 CLUSTERING_THRESHOLD = 100
 DISABLE_CLUSTERING_AT_ZOOM = 15
 NATIONWIDE_ZOOM = 5
+MAP_HEIGHT = 700
 FAST_MARKER_CALLBACK = """
 function (row) {
     const count = row[2];
@@ -187,6 +188,12 @@ def make_map(
 ) -> folium.Map:
     center = [facilities["latitude"].median(), facilities["longitude"].median()]
     folium_map = folium.Map(location=center, zoom_start=zoom_start, control_scale=True)
+    Fullscreen(
+        position="topright",
+        title="地図を全画面表示",
+        title_cancel="全画面表示を終了",
+        force_separate_button=True,
+    ).add_to(folium_map)
 
     positioned = facilities.assign(
         _map_latitude=facilities["latitude"].round(6),
@@ -264,7 +271,7 @@ def _display_map(
 ) -> None:
     with st.spinner("地図を描画しています…", show_time=True):
         folium_map = make_map(facilities, zoom_start=zoom_start, origin=origin)
-        st_folium(folium_map, width=None, height=600, returned_objects=[])
+        st_folium(folium_map, width=None, height=MAP_HEIGHT, returned_objects=[])
 
 
 try:
