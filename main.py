@@ -256,6 +256,17 @@ def make_map(
     return folium_map
 
 
+def _display_map(
+    facilities: pd.DataFrame,
+    *,
+    zoom_start: int,
+    origin: Coordinates | None = None,
+) -> None:
+    with st.spinner("地図を描画しています…", show_time=True):
+        folium_map = make_map(facilities, zoom_start=zoom_start, origin=origin)
+        st_folium(folium_map, width=None, height=600, returned_objects=[])
+
+
 try:
     last_update, source_facilities = load_xls()
     facilities = merge_coordinates(source_facilities, load_coordinates_frame())
@@ -299,7 +310,7 @@ with address_tab:
     else:
         st.subheader("地図")
         zoom_start = NATIONWIDE_ZOOM if not query else 10
-        st_folium(make_map(map_rows, zoom_start=zoom_start), width=None, height=600, returned_objects=[])
+        _display_map(map_rows, zoom_start=zoom_start)
 
 with nearest_tab:
     st.caption("住所を入力するか、照準ボタンを押して現在地から近い医療機関を探します。")
@@ -335,12 +346,7 @@ with nearest_tab:
         map_rows = _map_ready_rows(nearest)
         if not map_rows.empty:
             st.subheader("地図")
-            st_folium(
-                make_map(map_rows, zoom_start=12, origin=origin),
-                width=None,
-                height=600,
-                returned_objects=[],
-            )
+            _display_map(map_rows, zoom_start=12, origin=origin)
 
 st.divider()
 st.caption(f"元データ: {last_update}")
