@@ -6,7 +6,7 @@ import folium
 import pandas as pd
 import streamlit as st
 from branca.element import MacroElement, Template
-from folium.plugins import MarkerCluster
+from folium.plugins import FastMarkerCluster
 from streamlit_folium import st_folium
 from streamlit_geolocation import streamlit_geolocation
 
@@ -26,6 +26,30 @@ TITLE = "東振協 インフルエンザ予防接種 会場リスト"
 CLUSTERING_THRESHOLD = 100
 DISABLE_CLUSTERING_AT_ZOOM = 15
 NATIONWIDE_ZOOM = 5
+FAST_MARKER_CALLBACK = """
+function (row) {
+    const count = row[2];
+    const size = count > 1 ? 26 : 16;
+    const label = count > 1 ? String(count) : "";
+    const markerHtml = `<span style="
+        align-items:center;background:#d73027;border:1px solid #fff;border-radius:50%;
+        box-shadow:0 1px 3px rgba(0,0,0,.55);color:#fff;display:flex;
+        font:bold 11px sans-serif;height:${size}px;justify-content:center;width:${size}px;
+    ">${label}</span>`;
+    const marker = L.marker(new L.LatLng(row[0], row[1]), {
+        facilityCount: count,
+        icon: L.divIcon({
+            className: "",
+            html: markerHtml,
+            iconAnchor: [size / 2, size / 2],
+            iconSize: [size, size],
+        }),
+    });
+    marker.bindTooltip(row[3]);
+    marker.bindPopup(row[4], {maxWidth: 420});
+    return marker;
+}
+"""
 
 st.set_page_config(layout="wide", page_title=TITLE, page_icon="🏥")
 st.title(TITLE)
@@ -96,13 +120,14 @@ class ViewportAdaptiveClustering(MacroElement):
     _template = Template(
         """
         {% macro script(this, kwargs) %}
-        const {{ this.get_name() }}Markers = [
-            {% for marker_name, count in this.markers %}
-            {marker: {{ marker_name }}, count: {{ count }}},
-            {% endfor %}
-        ];
         const {{ this.get_name() }}Map = {{ this._parent.get_name() }};
         const {{ this.get_name() }}Cluster = {{ this.cluster_name }};
+        const {{ this.get_name() }}Markers = {{ this.get_name() }}Cluster
+            .getLayers()
+            .map((marker) => ({
+                marker: marker,
+                count: marker.options.facilityCount || 1,
+            }));
         const {{ this.get_name() }}Individuals = L.featureGroup()
             .addTo({{ this.get_name() }}Map);
 
@@ -144,14 +169,12 @@ class ViewportAdaptiveClustering(MacroElement):
 
     def __init__(
         self,
-        markers: list[tuple[str, int]],
-        cluster: MarkerCluster,
+        cluster: FastMarkerCluster,
         *,
         threshold: int,
     ) -> None:
         super().__init__()
         self._name = "ViewportAdaptiveClustering"
-        self.markers = markers
         self.cluster_name = cluster.get_name()
         self.threshold = threshold
 
@@ -165,19 +188,6 @@ def make_map(
     center = [facilities["latitude"].median(), facilities["longitude"].median()]
     folium_map = folium.Map(location=center, zoom_start=zoom_start, control_scale=True)
 
-    cluster_layer = None
-    if len(facilities) >= CLUSTERING_THRESHOLD:
-        cluster_layer = MarkerCluster(
-            name="医療機関",
-            options={
-                "disableClusteringAtZoom": DISABLE_CLUSTERING_AT_ZOOM,
-                "spiderfyOnMaxZoom": False,
-            },
-        ).add_to(folium_map)
-        individual_layer = None
-    else:
-        individual_layer = folium.FeatureGroup(name="医療機関").add_to(folium_map)
-
     positioned = facilities.assign(
         _map_latitude=facilities["latitude"].round(6),
         _map_longitude=facilities["longitude"].round(6),
@@ -187,7 +197,7 @@ def make_map(
         sort=False,
         dropna=False,
     )
-    adaptive_markers: list[tuple[str, int]] = []
+    marker_data: list[list[object]] = []
     for (_, _), group in coordinate_groups:
         rows = group.to_dict(orient="records")
         popup_sections = []
@@ -207,41 +217,35 @@ def make_map(
 
         group_size = len(rows)
         popup_prefix = f"<p><b>同じ座標に{group_size}施設</b></p><hr>" if group_size > 1 else ""
-        popup = folium.Popup(popup_prefix + "<hr>".join(popup_sections), max_width=420)
+        popup_html = popup_prefix + "<hr>".join(popup_sections)
         tooltip = (
             f"同じ座標に{group_size}施設"
             if group_size > 1
             else html.escape(str(rows[0]["医療機関名称"]))
         )
-        location = [rows[0]["latitude"], rows[0]["longitude"]]
-        if cluster_layer is not None:
-            marker = folium.Marker(
-                location=location,
-                popup=popup,
-                tooltip=tooltip,
-                icon=folium.Icon(color="red", prefix="fa", icon="hospital"),
-            )
-            marker.add_to(cluster_layer)
-            adaptive_markers.append((marker.get_name(), group_size))
-        else:
-            folium.CircleMarker(
-                location=location,
-                radius=8 if group_size > 1 else 6,
-                popup=popup,
-                tooltip=tooltip,
-                color="white",
-                weight=1,
-                fill=True,
-                fill_color="#d73027",
-                fill_opacity=0.9,
-            ).add_to(individual_layer)
+        marker_data.append(
+            [
+                float(rows[0]["latitude"]),
+                float(rows[0]["longitude"]),
+                group_size,
+                tooltip,
+                popup_html,
+            ]
+        )
 
-    if cluster_layer is not None:
-        ViewportAdaptiveClustering(
-            adaptive_markers,
-            cluster_layer,
-            threshold=CLUSTERING_THRESHOLD,
-        ).add_to(folium_map)
+    cluster_layer = FastMarkerCluster(
+        marker_data,
+        callback=FAST_MARKER_CALLBACK,
+        name="医療機関",
+        options={
+            "disableClusteringAtZoom": DISABLE_CLUSTERING_AT_ZOOM,
+            "spiderfyOnMaxZoom": False,
+        },
+    ).add_to(folium_map)
+    ViewportAdaptiveClustering(
+        cluster_layer,
+        threshold=CLUSTERING_THRESHOLD,
+    ).add_to(folium_map)
 
     if origin is not None:
         folium.Marker(
